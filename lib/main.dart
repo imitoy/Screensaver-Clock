@@ -2,7 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:myapp/settings_screen.dart';
+import 'package:screensaver_clock/settings_screen.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 void main() {
   runApp(const MyApp());
@@ -32,6 +33,7 @@ class _ClockScreenState extends State<ClockScreen> {
   late Timer _timer;
   late DateTime _now;
   final ValueNotifier<double> _fontSizeNotifier = ValueNotifier(100.0);
+  final ValueNotifier<double> _brightnessNotifier = ValueNotifier(1.0);
   bool _isFullscreen = false;
   bool _isLandscape = false;
 
@@ -50,6 +52,7 @@ class _ClockScreenState extends State<ClockScreen> {
   void dispose() {
     _timer.cancel();
     _fontSizeNotifier.dispose();
+    _brightnessNotifier.dispose();
     super.dispose();
   }
 
@@ -58,8 +61,10 @@ class _ClockScreenState extends State<ClockScreen> {
       _isFullscreen = !_isFullscreen;
       if (_isFullscreen) {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+        WakelockPlus.enable();
       } else {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+        WakelockPlus.disable();
       }
     });
   }
@@ -85,7 +90,10 @@ class _ClockScreenState extends State<ClockScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => SettingsScreen(fontSizeNotifier: _fontSizeNotifier),
+        builder: (context) => SettingsScreen(
+          fontSizeNotifier: _fontSizeNotifier,
+          brightnessNotifier: _brightnessNotifier,
+        ),
       ),
     );
   }
@@ -123,9 +131,17 @@ class _ClockScreenState extends State<ClockScreen> {
           child: ValueListenableBuilder<double>(
             valueListenable: _fontSizeNotifier,
             builder: (context, fontSize, _) {
-              return Text(
-                DateFormat('HH:mm:ss').format(_now),
-                style: TextStyle(fontSize: fontSize),
+              return ValueListenableBuilder<double>(
+                valueListenable: _brightnessNotifier,
+                builder: (context, brightness, _) {
+                  return Text(
+                    DateFormat('HH:mm:ss').format(_now),
+                    style: TextStyle(
+                      fontSize: fontSize,
+                      color: Colors.white.withOpacity(brightness),
+                    ),
+                  );
+                },
               );
             },
           ),

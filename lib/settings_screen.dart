@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 
 class SettingsScreen extends StatelessWidget {
   final ValueNotifier<double> fontSizeNotifier;
+  final ValueNotifier<double> brightnessNotifier;
 
-  const SettingsScreen({super.key, required this.fontSizeNotifier});
+  const SettingsScreen({
+    super.key,
+    required this.fontSizeNotifier,
+    required this.brightnessNotifier,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +31,21 @@ class SettingsScreen extends StatelessWidget {
                   max: 200.0,
                   onChanged: (value) {
                     fontSizeNotifier.value = value;
+                  },
+                );
+              },
+            ),
+            const SizedBox(height: 20),
+            const Text('Brightness'),
+            ValueListenableBuilder<double>(
+              valueListenable: brightnessNotifier,
+              builder: (context, brightness, _) {
+                return Slider(
+                  value: brightness,
+                  min: 0.1,
+                  max: 1.0,
+                  onChanged: (value) {
+                    brightnessNotifier.value = value;
                   },
                 );
               },
